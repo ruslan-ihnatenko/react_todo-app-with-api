@@ -8,6 +8,7 @@ type Props = {
   setErrorMessage: (message: string) => void;
   inputRef: React.RefObject<HTMLInputElement>;
   todos: Todo[];
+  toggleAll: () => void;
 };
 
 export const Header: React.FC<Props> = ({
@@ -15,19 +16,21 @@ export const Header: React.FC<Props> = ({
   setErrorMessage,
   inputRef,
   todos,
+  toggleAll,
 }) => {
   return (
     <header className="todoapp__header">
-      {/* this button should have `active` class only if all todos are completed */}
-      <button
-        type="button"
-        className={classNames('todoapp__toggle-all', {
-          active: todos.length > 0 && todos.every(todo => todo.completed),
-        })}
-        data-cy="ToggleAllButton"
-      />
+      {todos.length > 0 && (
+        <button
+          type="button"
+          className={classNames('todoapp__toggle-all', {
+            active: todos.length > 0 && todos.every(todo => todo.completed),
+          })}
+          data-cy="ToggleAllButton"
+          onClick={toggleAll}
+        />
+      )}
 
-      {/* Add a todo on form submit */}
       <ToDoForm
         onSubmit={addToDo}
         onError={setErrorMessage}

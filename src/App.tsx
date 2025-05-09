@@ -129,10 +129,28 @@ export const App: React.FC = () => {
         currentTodos.map(todo => (todo.id === todoId ? updatedTodo : todo)),
       );
     } catch {
-      setErrorMessage('Unable to update todo status');
+      setErrorMessage('Unable to update a todo');
       loadToDos();
     } finally {
       setLoadingTodoId(null);
+    }
+  };
+
+  const allCompleted = todos.every(todo => todo.completed);
+
+  const toggleAllTodos = async () => {
+    const newStatus = !allCompleted;
+
+    try {
+      await Promise.all(
+        todos.map(todo => {
+          return todo.completed !== newStatus
+            ? updateTodo(todo.id, { completed: newStatus })
+            : Promise.resolve();
+        }),
+      );
+    } catch (error) {
+      setErrorMessage('Unable to toggle all todos');
     }
   };
 
@@ -150,6 +168,7 @@ export const App: React.FC = () => {
 
       <div className="todoapp__content">
         <Header
+          toggleAll={toggleAllTodos}
           addToDo={addToDo}
           setErrorMessage={setErrorMessage}
           inputRef={inputRef}
