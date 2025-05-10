@@ -100,7 +100,6 @@ export const App: React.FC = () => {
       }
     } catch (error) {
       setErrorMessage('Unable to delete a todo');
-      loadToDos();
     } finally {
       setLoadingTodoId(null);
     }

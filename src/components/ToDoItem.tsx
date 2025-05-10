@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Todo } from '../types/Todo';
 import classNames from 'classnames';
 
@@ -20,6 +20,13 @@ export const ToDoItem: React.FC<Props> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditing]);
 
   const handleDoubleClick = () => {
     setIsEditing(true);
@@ -30,16 +37,9 @@ export const ToDoItem: React.FC<Props> = ({
     const trimmed = editTitle.trim();
 
     if (!trimmed) {
-      deleteToDo(todo.id)
-        .then(() => {
-          setIsEditing(false);
-        })
-        .catch(() => {
-          setErrorMessage('Unable to delete a todo');
-          // Stay in edit mode
-          setIsEditing(true);
-          setEditTitle(todo.title); // Restore previous value
-        });
+      deleteToDo(todo.id).catch(() => {
+        setErrorMessage('Unable to delete a todo');
+      });
 
       return;
     }
@@ -87,6 +87,7 @@ export const ToDoItem: React.FC<Props> = ({
 
       {isEditing ? (
         <input
+          ref={inputRef}
           data-cy="TodoTitleField"
           type="text"
           className="todo__title-field"
@@ -94,7 +95,6 @@ export const ToDoItem: React.FC<Props> = ({
           onChange={e => setEditTitle(e.target.value)}
           onBlur={handleEditFinish}
           onKeyDown={handleKeyDown}
-          autoFocus
         />
       ) : (
         <>
