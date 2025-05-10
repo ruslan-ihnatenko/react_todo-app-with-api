@@ -14,7 +14,7 @@ export const App: React.FC = () => {
   // #region loadToDOs
   const [todos, setToDos] = useState<Todo[]>([]);
   const [, setLoading] = useState<boolean>(false);
-  const [loadingTodoId, setLoadingTodoId] = useState<number | null>(null);
+  const [loadingTodoIds, setloadingTodoIds] = useState<number[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [filter, setFilter] = useState<Filter>(Filter.All);
   const [tempToDo, setTempToDo] = useState<Todo | null>(null);
@@ -88,7 +88,7 @@ export const App: React.FC = () => {
 
   const deleteToDo = async (todoId: number) => {
     setErrorMessage('');
-    setLoadingTodoId(todoId);
+    setloadingTodoIds(prev => [...prev, todoId]);
 
     try {
       await postService.deleteTodo(todoId);
@@ -101,7 +101,7 @@ export const App: React.FC = () => {
     } catch (error) {
       setErrorMessage('Unable to delete a todo');
     } finally {
-      setLoadingTodoId(null);
+      setloadingTodoIds(prev => prev.filter(id => id !== todoId));
     }
   };
 
@@ -111,7 +111,7 @@ export const App: React.FC = () => {
     );
 
   const updateTodo = async (todoId: number, updatedFields: Partial<Todo>) => {
-    setLoadingTodoId(todoId);
+    setloadingTodoIds(prev => [...prev, todoId]);
 
     try {
       const todoToUpdate = todos.find(todo => todo.id === todoId);
@@ -142,7 +142,7 @@ export const App: React.FC = () => {
       setErrorMessage('Unable to update a todo');
       throw error;
     } finally {
-      setLoadingTodoId(null);
+      setloadingTodoIds(prev => prev.filter(id => id !== todoId));
     }
   };
 
@@ -193,7 +193,7 @@ export const App: React.FC = () => {
               todo={todo}
               deleteToDo={deleteToDo}
               updateTodo={updateTodo}
-              loadingToDoId={loadingTodoId}
+              loadingTodoIds={loadingTodoIds}
             />
           ))}
 

@@ -5,7 +5,7 @@ import classNames from 'classnames';
 
 type Props = {
   todo: Todo;
-  loadingToDoId: number | null;
+  loadingTodoIds: number[];
   updateTodo: (todoId: number, updatedFields: Partial<Todo>) => Promise<void>;
   deleteToDo: (todoId: number) => Promise<void>;
   setErrorMessage: (message: React.SetStateAction<string>) => void;
@@ -13,7 +13,7 @@ type Props = {
 
 export const ToDoItem: React.FC<Props> = ({
   todo,
-  loadingToDoId,
+  loadingTodoIds,
   updateTodo,
   deleteToDo,
   setErrorMessage,
@@ -120,7 +120,7 @@ export const ToDoItem: React.FC<Props> = ({
       <div
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
-          'is-active': loadingToDoId === todo.id,
+          'is-active': loadingTodoIds.includes(todo.id),
         })}
       >
         <div className="modal-background has-background-white-ter" />
