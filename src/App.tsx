@@ -8,6 +8,7 @@ import { Filter } from './types/Filter';
 import { Header } from './components/Header';
 import { TempToDo } from './components/TempToDo';
 import { Footer } from './components/Footer';
+import { ToDoItem } from './components/ToDoItem';
 
 export const App: React.FC = () => {
   // #region loadToDOs
@@ -32,16 +33,18 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     loadToDos();
+  }, []);
 
-    if (errorMessage) {
-      const timer = setTimeout(() => {
-        setErrorMessage('');
-      }, 3000);
-
-      return () => clearTimeout(timer);
+  useEffect(() => {
+    if (!errorMessage) {
+      return;
     }
 
-    return;
+    const timer = setTimeout(() => {
+      setErrorMessage('');
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, [errorMessage]);
 
   const filteredToDos = todos.filter(todo => {
@@ -120,6 +123,14 @@ export const App: React.FC = () => {
         return;
       }
 
+      const isUnchanged = Object.entries(updatedFields).every(
+        ([key, value]) => todoToUpdate[key as keyof Todo] === value,
+      );
+
+      if (isUnchanged) {
+        return;
+      }
+
       const updatedTodo = await postService.updateTodo({
         ...todoToUpdate,
         ...updatedFields,
@@ -128,9 +139,9 @@ export const App: React.FC = () => {
       setToDos(currentTodos =>
         currentTodos.map(todo => (todo.id === todoId ? updatedTodo : todo)),
       );
-    } catch {
+    } catch (error) {
       setErrorMessage('Unable to update a todo');
-      loadToDos();
+      throw error;
     } finally {
       setLoadingTodoId(null);
     }
@@ -177,50 +188,14 @@ export const App: React.FC = () => {
 
         <section className="todoapp__main" data-cy="TodoList">
           {filteredToDos.map(todo => (
-            <div
+            <ToDoItem
               key={todo.id}
-              data-cy="Todo"
-              className={classNames('todo', { completed: todo.completed })}
-            >
-              <label
-                className="todo__status-label"
-                htmlFor={`todo-status-${todo.id}`}
-              >
-                <input
-                  id={`todo-status-${todo.id}`}
-                  data-cy="TodoStatus"
-                  type="checkbox"
-                  className="todo__status"
-                  checked={todo.completed}
-                  onChange={() =>
-                    updateTodo(todo.id, { completed: !todo.completed })
-                  }
-                />
-              </label>
-
-              <span data-cy="TodoTitle" className="todo__title">
-                {todo.title}
-              </span>
-
-              <button
-                type="button"
-                className="todo__remove"
-                data-cy="TodoDelete"
-                onClick={() => deleteToDo(todo.id)}
-              >
-                ×
-              </button>
-
-              <div
-                data-cy="TodoLoader"
-                className={classNames('modal overlay', {
-                  'is-active': loadingTodoId === todo.id,
-                })}
-              >
-                <div className="modal-background has-background-white-ter" />
-                <div className="loader" />
-              </div>
-            </div>
+              setErrorMessage={setErrorMessage}
+              todo={todo}
+              deleteToDo={deleteToDo}
+              updateTodo={updateTodo}
+              loadingToDoId={loadingTodoId}
+            />
           ))}
 
           <TempToDo tempToDo={tempToDo} />
