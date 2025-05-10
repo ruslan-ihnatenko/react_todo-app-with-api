@@ -58,7 +58,6 @@ export const App: React.FC = () => {
 
     return true;
   });
-
   // #endregion
   // #region add, delete
   const addToDo = async (newTodo: Todo) => {
