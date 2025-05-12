@@ -5,20 +5,21 @@ import classNames from 'classnames';
 
 type Props = {
   todo: Todo;
-  loadingTodoIds: number[];
+  loadingToDoId: number | null;
   updateTodo: (todoId: number, updatedFields: Partial<Todo>) => Promise<void>;
   deleteToDo: (todoId: number) => Promise<void>;
-  setErrorMessage: (message: React.SetStateAction<string>) => void;
+  isEditing: boolean;
+  setIsEditing: (isEditing: boolean) => void;
 };
 
 export const ToDoItem: React.FC<Props> = ({
   todo,
-  loadingTodoIds,
+  loadingToDoId,
   updateTodo,
   deleteToDo,
-  setErrorMessage,
+  isEditing,
+  setIsEditing,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -37,9 +38,7 @@ export const ToDoItem: React.FC<Props> = ({
     const trimmed = editTitle.trim();
 
     if (!trimmed) {
-      deleteToDo(todo.id).catch(() => {
-        setErrorMessage('Unable to delete a todo');
-      });
+      deleteToDo(todo.id);
 
       return;
     }
@@ -50,13 +49,9 @@ export const ToDoItem: React.FC<Props> = ({
       return;
     }
 
-    updateTodo(todo.id, { title: trimmed })
-      .then(() => {
-        setIsEditing(false);
-      })
-      .catch(() => {
-        setErrorMessage('Unable to update a todo');
-      });
+    updateTodo(todo.id, { title: trimmed }).then(() => {
+      setIsEditing(false);
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -120,7 +115,7 @@ export const ToDoItem: React.FC<Props> = ({
       <div
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
-          'is-active': loadingTodoIds.includes(todo.id),
+          'is-active': loadingToDoId === todo.id,
         })}
       >
         <div className="modal-background has-background-white-ter" />

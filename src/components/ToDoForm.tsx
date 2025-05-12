@@ -44,7 +44,10 @@ export const ToDoForm: React.FC<Props> = ({ onSubmit, onError, inputRef }) => {
         inputRef.current.focus();
       }
     } catch (error) {
-      onError('Unable to add a todo');
+      // Keep the title in the input field on error
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     } finally {
       setIsSubmitting(false);
     }

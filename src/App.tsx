@@ -13,26 +13,19 @@ import { ToDoItem } from './components/ToDoItem';
 export const App: React.FC = () => {
   // #region loadToDOs
   const [todos, setToDos] = useState<Todo[]>([]);
-  const [, setLoading] = useState<boolean>(false);
-  const [loadingTodoIds, setloadingTodoIds] = useState<number[]>([]);
+  const [loadingTodoId, setLoadingTodoId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [filter, setFilter] = useState<Filter>(Filter.All);
   const [tempToDo, setTempToDo] = useState<Todo | null>(null);
+  const [editingTodoId, setEditingTodoId] = useState<number | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const loadToDos = () => {
-    setLoading(true);
-
+  useEffect(() => {
     postService
       .getTodos(USER_ID)
       .then(setToDos)
-      .catch(() => setErrorMessage('Unable to load todos'))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    loadToDos();
+      .catch(() => setErrorMessage('Unable to load todos'));
   }, []);
 
   useEffect(() => {
@@ -82,12 +75,14 @@ export const App: React.FC = () => {
       setErrorMessage('Unable to add a todo');
       setTempToDo(null);
       throw error;
+    } finally {
+      setLoadingTodoId(null);
     }
   };
 
   const deleteToDo = async (todoId: number) => {
     setErrorMessage('');
-    setloadingTodoIds(prev => [...prev, todoId]);
+    setLoadingTodoId(todoId);
 
     try {
       await postService.deleteTodo(todoId);
@@ -99,8 +94,9 @@ export const App: React.FC = () => {
       }
     } catch (error) {
       setErrorMessage('Unable to delete a todo');
+      throw error;
     } finally {
-      setloadingTodoIds(prev => prev.filter(id => id !== todoId));
+      setLoadingTodoId(null);
     }
   };
 
@@ -110,15 +106,14 @@ export const App: React.FC = () => {
     );
 
   const updateTodo = async (todoId: number, updatedFields: Partial<Todo>) => {
-    setloadingTodoIds(prev => [...prev, todoId]);
+    setLoadingTodoId(todoId);
 
     try {
       const todoToUpdate = todos.find(todo => todo.id === todoId);
 
       if (!todoToUpdate) {
         setErrorMessage('Todo not found');
-
-        return;
+        throw new Error('Todo not found');
       }
 
       const isUnchanged = Object.entries(updatedFields).every(
@@ -141,7 +136,7 @@ export const App: React.FC = () => {
       setErrorMessage('Unable to update a todo');
       throw error;
     } finally {
-      setloadingTodoIds(prev => prev.filter(id => id !== todoId));
+      setLoadingTodoId(null);
     }
   };
 
@@ -188,11 +183,14 @@ export const App: React.FC = () => {
           {filteredToDos.map(todo => (
             <ToDoItem
               key={todo.id}
-              setErrorMessage={setErrorMessage}
               todo={todo}
               deleteToDo={deleteToDo}
               updateTodo={updateTodo}
-              loadingTodoIds={loadingTodoIds}
+              loadingToDoId={loadingTodoId}
+              isEditing={editingTodoId === todo.id}
+              setIsEditing={isEditing =>
+                setEditingTodoId(isEditing ? todo.id : null)
+              }
             />
           ))}
 
