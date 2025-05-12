@@ -113,7 +113,7 @@ export const App: React.FC = () => {
 
       if (!todoToUpdate) {
         setErrorMessage('Todo not found');
-        throw new Error('Todo not found');
+        throw new Error(errorMessage);
       }
 
       const isUnchanged = Object.entries(updatedFields).every(
